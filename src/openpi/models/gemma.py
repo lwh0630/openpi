@@ -44,6 +44,7 @@ PALIGEMMA_VOCAB_SIZE = 257_152
 @dataclasses.dataclass
 class Config:
     """模型配置类。"""
+
     width: int  # 模型宽度，即特征维度 d_model
     depth: int  # 模型深度，即Transformer层数
     mlp_dim: int  # MLP（多层感知机）的隐藏层维度
@@ -118,6 +119,7 @@ def get_config(variant: Variant) -> Config:
 @at.typecheck
 class RMSNorm(nn.Module):
     """RMS归一化层，Gemma模型中使用的归一化方式。"""
+
     @nn.compact
     def __call__(self, x):
         dtype = x.dtype  # 原始数据类型，可能是半精度（如bfloat16）

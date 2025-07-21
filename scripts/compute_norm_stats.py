@@ -21,6 +21,7 @@ class RemoveStrings(transforms.DataTransformFn):
     一个数据转换函数，用于从字典中移除所有字符串类型的键值对。
     字符串类型的数据不适用于计算归一化统计量，也不受JAX支持。
     """
+
     def __call__(self, x: dict) -> dict:
         """
         执行转换操作。
@@ -66,7 +67,7 @@ def create_torch_dataloader(
         dataset,
         [
             *data_config.repack_transforms.inputs,  # 应用重打包转换
-            *data_config.data_transforms.inputs,    # 应用数据转换
+            *data_config.data_transforms.inputs,  # 应用数据转换
             # 移除字符串，因为JAX不支持且计算归一化统计量不需要
             RemoveStrings(),
         ],
@@ -76,7 +77,7 @@ def create_torch_dataloader(
         shuffle = True  # 如果指定了最大帧数且小于数据集大小，则进行混洗
     else:
         num_batches = len(dataset) // batch_size
-        shuffle = False # 否则不混洗
+        shuffle = False  # 否则不混洗
     # 创建PyTorch数据加载器
     data_loader = _data_loader.TorchDataLoader(
         dataset,
@@ -113,7 +114,7 @@ def create_rlds_dataloader(
         dataset,
         [
             *data_config.repack_transforms.inputs,  # 应用重打包转换
-            *data_config.data_transforms.inputs,    # 应用数据转换
+            *data_config.data_transforms.inputs,  # 应用数据转换
             # 移除字符串，因为JAX不支持且计算归一化统计量不需要
             RemoveStrings(),
         ],

@@ -12,7 +12,6 @@ from typing import Literal
 import h5py
 from lerobot.common.datasets.lerobot_dataset import HF_LEROBOT_HOME
 from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
-from lerobot.common.datasets.push_dataset_to_hub._download_raw import download_raw
 import numpy as np
 import torch
 import tqdm
@@ -242,8 +241,10 @@ def port_aloha(
         shutil.rmtree(HF_LEROBOT_HOME / repo_id)
 
     if not raw_dir.exists():
-        raise ValueError("In the latest LeRobot codebase, the _download_raw script has been removed,\
-                         and as a result, the raw_repo_id parameter is no longer used.")
+        raise ValueError(
+            "In the latest LeRobot codebase, the _download_raw script has been removed,\
+                         and as a result, the raw_repo_id parameter is no longer used."
+        )
 
     hdf5_files = sorted(raw_dir.glob("episode_*.hdf5"))
 

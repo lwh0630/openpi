@@ -88,6 +88,7 @@ def save_state(
         data_loader: 数据加载器实例。
         step: 当前训练步数。
     """
+
     def save_assets(directory: epath.Path):
         # 保存归一化统计信息。
         data_config = data_loader.data_config()  # 获取数据配置
@@ -158,6 +159,7 @@ def load_norm_stats(assets_dir: epath.Path | str, asset_id: str) -> dict[str, _n
 
 class Callback(Protocol):
     """一个用于回调函数的协议。"""
+
     def __call__(self, directory: epath.Path) -> None: ...
 
 
@@ -202,13 +204,13 @@ class CallbackHandler(ocp.AsyncCheckpointHandler):
 @dataclasses.dataclass
 class CallbackSave(ocp.args.CheckpointArgs):
     """用于 CallbackHandler 保存操作的参数。"""
+
     callback: Callback  # 要执行的回调函数
 
 
 @ocp.args.register_with_handler(CallbackHandler, for_restore=True)
 class CallbackRestore(ocp.args.CheckpointArgs):
     """用于 CallbackHandler 恢复操作的参数（目前不支持）。"""
-    ...
 
 
 def _split_params(state: training_utils.TrainState) -> tuple[training_utils.TrainState, at.Params]:

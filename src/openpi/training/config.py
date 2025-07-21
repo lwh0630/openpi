@@ -261,11 +261,11 @@ class LeRobotLiberoDataConfig(DataConfigFactory):
     Methods:
         create(assets_dirs: pathlib.Path, model_config: _model.BaseModelConfig) -> DataConfig:
             创建并返回数据配置对象，包含三种主要变换：重新打包变换、数据变换和模型变换。
-            
+
             Args:
                 assets_dirs: 资源目录路径
                 model_config: 基础模型配置对象
-                
+
             Returns:
                 DataConfig: 包含完整数据管道配置的对象
     """
@@ -278,7 +278,7 @@ class LeRobotLiberoDataConfig(DataConfigFactory):
         2. data_transforms: 对模型输入输出数据进行变换
         3. model_transforms: 模型特有的变换(如token化)
         """
-        
+
         # 重映射数据集键名以匹配推理环境中的键名结构
         repack_transform = _transforms.Group(
             inputs=[
@@ -375,16 +375,18 @@ class RLDSDroidDataConfig(DataConfigFactory):
         )
 
 
-@dataclasses.dataclass(frozen=True) # 使用数据类，并设置为不可变（frozen=True），意味着实例创建后不能修改属性。
+@dataclasses.dataclass(frozen=True)  # 使用数据类，并设置为不可变（frozen=True），意味着实例创建后不能修改属性。
 class TrainConfig:
     # 配置的名称。必须是唯一的。将用于引用此配置。
-    name: tyro.conf.Suppress[str] # tyro.conf.Suppress 表示此参数通常不会在命令行中直接指定，可能通过其他方式设置或推断。
+    name: tyro.conf.Suppress[
+        str
+    ]  # tyro.conf.Suppress 表示此参数通常不会在命令行中直接指定，可能通过其他方式设置或推断。
 
     # 项目名称。
     project_name: str = "openpi"
 
     # 实验名称。将用于命名元数据和检查点目录。
-    exp_name: str = tyro.MISSING # tyro.MISSING 表示此参数必须被明确提供，没有默认值。
+    exp_name: str = tyro.MISSING  # tyro.MISSING 表示此参数必须被明确提供，没有默认值。
 
     # 定义模型配置。一些属性（action_dim、action_horizon 和 max_token_len）是所有模型共享的
     # —— 参见 BaseModelConfig。具体的模型实现（例如 Pi0Config）继承自 BaseModelConfig，并可能定义额外的属性。
@@ -564,7 +566,6 @@ _CONFIGS = [
         # Check the base TrainConfig class for a full list of available hyperparameters.
         num_train_steps=30_000,
     ),
-    
     # 用于Libero任务微调的配置实例
     # 参数说明:
     # - name: 训练配置名称，标识当前配置
@@ -584,7 +585,7 @@ _CONFIGS = [
         # Here is an example of loading a pi0 model for LoRA fine-tuning.
         model=pi0.Pi0Config(paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"),
         data=LeRobotLiberoDataConfig(
-            repo_id="/mnt/sda/lwh/openpi/.cache/wenhai/libero",     # 可以是本地路径，也可以是Hugging Face Hub 的 repo_id
+            repo_id="/mnt/sda/lwh/openpi/.cache/wenhai/libero",  # 可以是本地路径，也可以是Hugging Face Hub 的 repo_id
             base_config=DataConfig(prompt_from_task=True),
         ),
         weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
@@ -600,7 +601,6 @@ _CONFIGS = [
         ema_decay=None,
         wandb_enabled=False,
     ),
-    
     TrainConfig(
         name="pi0_libero_low_mem_finetune",
         # Here is an example of loading a pi0 model for LoRA fine-tuning.

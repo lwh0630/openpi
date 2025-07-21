@@ -246,7 +246,7 @@ class Pi0(_model.BaseModel):
         tokens = []
         # 嵌入图像
         for name in obs.images:
-            # 使用 SigLIP 图像编码器对每个图像进行编码。 
+            # 使用 SigLIP 图像编码器对每个图像进行编码。
             # image_tokens 的 shape 为 [batch_size, num_image_tokens, embedding_dim] ==>> [b, 256, 2048]
             image_tokens, _ = self.PaliGemma.img(obs.images[name], train=False)
 
@@ -349,15 +349,15 @@ class Pi0(_model.BaseModel):
         # 预处理观察值。
         observation = _model.preprocess_observation(preprocess_rng, observation, train=train)
 
-        batch_shape = actions.shape[:-2] # (b,)
+        batch_shape = actions.shape[:-2]  # (b,)
         # 生成与动作相同形状的随机噪声。
         noise = jax.random.normal(noise_rng, actions.shape)
         # 从 Beta 分布中采样一个时间步 `t`。
-        time = jax.random.beta(time_rng, 1.5, 1, batch_shape) * 0.999 + 0.001 # 
+        time = jax.random.beta(time_rng, 1.5, 1, batch_shape) * 0.999 + 0.001  #
         time_expanded = time[..., None, None]
         # 计算带噪声的动作 (x_t) 和扩散的目标噪声 (u_t)。
         x_t = time_expanded * noise + (1 - time_expanded) * actions
-        u_t = noise - actions   # 
+        u_t = noise - actions  #
 
         # 一次性对前缀 + 后缀进行一次大的前向传播
         # 嵌入前缀和后缀 token。

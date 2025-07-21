@@ -16,12 +16,13 @@ import openpi.shared.download as download
 
 class PaligemmaTokenizer:
     """PaliGemma模型的分词器实现。
-    
+
     使用SentencePiece进行文本分词，支持最大长度限制和自动填充/截断。
-    
+
     Args:
         max_len: 最大分词长度，默认为48
     """
+
     def __init__(self, max_len: int = 48):
         self._max_len = max_len
 
@@ -32,10 +33,10 @@ class PaligemmaTokenizer:
 
     def tokenize(self, prompt: str) -> tuple[np.ndarray, np.ndarray]:
         """将输入文本分词为token序列和注意力掩码。
-        
+
         Args:
             prompt: 输入文本
-            
+
         Returns:
             包含两个元素的元组:
                 - tokens: token ID序列的numpy数组
@@ -43,11 +44,11 @@ class PaligemmaTokenizer:
         """
         # 清理文本：去除空格、替换特殊字符
         cleaned_text = prompt.strip().replace("_", " ").replace("\n", " ")
-        
+
         # 分词并添加特殊换行符token
         tokens = self._tokenizer.encode(cleaned_text, add_bos=True) + self._tokenizer.encode("\n")
         tokens_len = len(tokens)
-        
+
         # 根据最大长度进行填充或截断处理
         if tokens_len < self._max_len:
             padding = [False] * (self._max_len - tokens_len)
@@ -67,13 +68,14 @@ class PaligemmaTokenizer:
 
 class FASTTokenizer:
     """结合PaliGemma和FAST分词器的增强实现。
-    
+
     支持文本、状态和动作序列的联合分词。
-    
+
     Args:
         max_len: 最大分词长度，默认为256
         fast_tokenizer_path: FAST分词器路径，默认为"physical-intelligence/fast"
     """
+
     def __init__(self, max_len: int = 256, fast_tokenizer_path: str = "physical-intelligence/fast"):
         self._max_len = max_len
 
@@ -90,12 +92,12 @@ class FASTTokenizer:
         self, prompt: str, state: np.ndarray, actions: np.ndarray | None
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """将输入文本、状态和动作序列联合分词。
-        
+
         Args:
             prompt: 任务描述文本
             state: 环境状态向量
             actions: 可选的动作序列(预测时为None)
-            
+
         Returns:
             包含四个元素的元组:
                 - tokens: 联合token序列
@@ -158,12 +160,12 @@ class FASTTokenizer:
 
     def extract_actions(self, tokens: np.ndarray, action_horizon: int, action_dim: int) -> np.ndarray:
         """从模型输出token中提取动作序列。
-        
+
         Args:
             tokens: 模型输出token序列
             action_horizon: 预测的动作步数
             action_dim: 每个动作的维度
-            
+
         Returns:
             解码后的动作序列numpy数组
         """

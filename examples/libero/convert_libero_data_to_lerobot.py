@@ -102,4 +102,3 @@ def main(data_dir: str, *, push_to_hub: bool = False):
 
 if __name__ == "__main__":
     tyro.cli(main)
-    

@@ -32,14 +32,15 @@ class ModelType(enum.Enum):
 
 # The model always expects these images
 IMAGE_KEYS = (
-    "base_0_rgb",               # 一个基础视图（机器人环境的全局视图）
-    "left_wrist_0_rgb",         # 左手腕视图（来自左手腕摄像头）
-    "right_wrist_0_rgb",        # 右手腕视图（来自右手腕摄像头）
+    "base_0_rgb",  # 一个基础视图（机器人环境的全局视图）
+    "left_wrist_0_rgb",  # 左手腕视图（来自左手腕摄像头）
+    "right_wrist_0_rgb",  # 右手腕视图（来自右手腕摄像头）
 )
 
 
 # This may need change if we release a small model.
 IMAGE_RESOLUTION = (224, 224)
+
 
 # 下面代码定义了模型输入数据格式
 # 输入是一个嵌套字典，包含观测数据和动作数据
@@ -164,7 +165,7 @@ def preprocess_observation(
     if not set(image_keys).issubset(observation.images):
         raise ValueError(f"images dict missing keys: expected {image_keys}, got {list(observation.images)}")
 
-    batch_shape = observation.state.shape[:-1] # bash shape = [*b]
+    batch_shape = observation.state.shape[:-1]  # bash shape = [*b]
 
     out_images = {}
     for key in image_keys:
@@ -231,7 +232,7 @@ def preprocess_observation(
 @dataclasses.dataclass(frozen=True)
 class BaseModelConfig(abc.ABC):
     """所有模型的共享配置基类。具体模型应继承此类并实现`create`方法来创建对应模型。
-    
+
     属性:
         action_dim: 动作空间的维度大小
         action_horizon: 动作序列的长度
@@ -249,7 +250,7 @@ class BaseModelConfig(abc.ABC):
     @abc.abstractmethod
     def model_type(self) -> ModelType:
         """抽象属性，定义模型类型。
-        
+
         返回:
             模型类型枚举值(ModelType) pi0 or pi0_fast
         """
@@ -257,24 +258,24 @@ class BaseModelConfig(abc.ABC):
     @abc.abstractmethod
     def create(self, rng: at.KeyArrayLike) -> "BaseModel":
         """抽象方法，创建并初始化一个新模型。
-        
+
         参数:
             rng: 用于参数初始化的随机数生成器密钥
-            
+
         返回:
             新创建的BaseModel实例，包含初始化参数
         """
 
     def load(self, params: at.Params, *, remove_extra_params: bool = True) -> "BaseModel":
         """使用给定的参数创建模型实例。
-        
+
         参数:
             params: 要加载的模型参数
             remove_extra_params: 是否移除模型中不存在的额外参数
-            
+
         返回:
             使用给定参数初始化的BaseModel实例
-            
+
         注意:
             在加载前会验证参数形状，并可选地过滤多余参数
         """
@@ -289,20 +290,20 @@ class BaseModelConfig(abc.ABC):
     @abc.abstractmethod
     def inputs_spec(self, *, batch_size: int = 1) -> tuple[Observation, Actions]:
         """抽象方法，定义模型的输入规范。
-        
+
         参数:
             batch_size: 输入规范的批次大小
-            
+
         返回:
             包含(observation_spec, action_spec)的元组，每个都是jax.ShapeDtypeStruct
         """
 
     def fake_obs(self, batch_size: int = 1) -> Observation:
         """生成符合模型输入规范的假观测数据。
-        
+
         参数:
             batch_size: 生成数据的批次大小
-            
+
         返回:
             填充1的Observation对象，符合指定的形状和数据类型
         """
@@ -311,10 +312,10 @@ class BaseModelConfig(abc.ABC):
 
     def fake_act(self, batch_size: int = 1) -> Actions:
         """生成符合模型输入规范的假动作数据。
-        
+
         参数:
             batch_size: 生成数据的批次大小
-            
+
         返回:
             填充1的Actions对象，符合指定的形状和数据类型
         """
@@ -345,6 +346,7 @@ class BaseModel(nnx.Module, abc.ABC):
         *,
         train: bool = False,
     ) -> at.Float[at.Array, "*b ah"]: ...
+
     """抽象方法：计算模型损失(用于训练或评估)。
 
         参数:
@@ -359,6 +361,7 @@ class BaseModel(nnx.Module, abc.ABC):
 
     @abc.abstractmethod
     def sample_actions(self, rng: at.KeyArrayLike, observation: Observation) -> Actions: ...
+
     """抽象方法：从模型策略中采样动作。
 
         参数:
@@ -369,6 +372,7 @@ class BaseModel(nnx.Module, abc.ABC):
             从模型策略中采样的动作序列
     """
 
+
 def restore_params(
     params_path: pathlib.Path | str,
     *,
@@ -377,7 +381,7 @@ def restore_params(
     sharding: jax.sharding.Sharding | None = None,
 ) -> at.Params:
     """从检查点恢复非结构化参数PyTree
-    
+
     该函数兼容以下两种检查点格式：
     1. 训练过程中通过[save_state](openpi/training/checkpoints.py#L64-L85)保存的检查点
     2. openpi发布的预训练模型检查点
