@@ -164,7 +164,7 @@ def preprocess_observation(
     if not set(image_keys).issubset(observation.images):
         raise ValueError(f"images dict missing keys: expected {image_keys}, got {list(observation.images)}")
 
-    batch_shape = observation.state.shape[:-1]
+    batch_shape = observation.state.shape[:-1] # bash shape = [*b]
 
     out_images = {}
     for key in image_keys:
@@ -174,7 +174,7 @@ def preprocess_observation(
             logger.info(f"Resizing image {key} from {image.shape[1:3]} to {image_resolution}")
             image = image_tools.resize_with_pad(image, *image_resolution)
 
-         # 训练模式下应用数据增强
+        # 训练模式下应用数据增强
         if train:
             # Convert from [-1, 1] to [0, 1] for augmax.
             image = image / 2.0 + 0.5

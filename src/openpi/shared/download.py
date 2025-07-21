@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 def get_cache_dir() -> pathlib.Path:
     default_dir = "~/.cache/openpi"
-    if os.path.exists("/mnt/weka"):  # noqa: PTH110
-        default_dir = f"/mnt/weka/{getpass.getuser()}/.cache/openpi"
+    if os.path.exists("/mnt/sda/lwh/openpi"):  # noqa: PTH110
+        default_dir = f"/mnt/sda/lwh/openpi/.cache/openpi"
 
     cache_dir = pathlib.Path(os.getenv(_OPENPI_DATA_HOME, default_dir)).expanduser().resolve()
     cache_dir.mkdir(parents=True, exist_ok=True)

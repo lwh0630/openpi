@@ -215,6 +215,7 @@ class Pi0(_model.BaseModel):
         # 使用伪造的观察值对图像编码器进行延迟初始化。
         img.lazy_init(next(iter(config.fake_obs().images.values())), train=False, rngs=rngs)
         # 将 LLM 和图像编码器存储在一个 Dict 中。
+        # llm = paligemma + action_expert, img = siglip
         self.PaliGemma = nnx.Dict(llm=llm, img=img)
         # 状态和动作输入的线性投影。
         self.state_proj = nnx.Linear(config.action_dim, action_expert_config.width, rngs=rngs)
@@ -235,9 +236,9 @@ class Pi0(_model.BaseModel):
             obs: 包含图像和 token 化提示的观察值。
 
         Returns:
-            包含以下内容的元组：
+            包含以下内容的元组： [image1, image2, image3, prompt]
                 - `tokens`: 嵌入的前缀 token。
-                - `input_mask`: 指示有效输入 token 的掩码。
+                - `input_mask`: 指示有效输入 token 的掩码。(告诉模型哪些 token 是有效的输入，主要是iamge缺失, prompt不够长)
                 - `ar_mask`: 用于注意力的自回归掩码。
         """
         input_mask = []
@@ -245,7 +246,8 @@ class Pi0(_model.BaseModel):
         tokens = []
         # 嵌入图像
         for name in obs.images:
-            # 使用 SigLIP 图像编码器对每个图像进行编码。
+            # 使用 SigLIP 图像编码器对每个图像进行编码。 
+            # image_tokens 的 shape 为 [batch_size, num_image_tokens, embedding_dim] ==>> [b, 256, 2048]
             image_tokens, _ = self.PaliGemma.img(obs.images[name], train=False)
 
             tokens.append(image_tokens)
@@ -296,6 +298,7 @@ class Pi0(_model.BaseModel):
         tokens = []
         # 添加一个单独的状态 token
         # 将当前状态投影到嵌入维度。
+        print(obs.state)
         state_token = self.state_proj(obs.state)[:, None, :]
         tokens.append(state_token)
         # 状态 token 的掩码（始终存在）。
@@ -304,7 +307,6 @@ class Pi0(_model.BaseModel):
         ar_mask += [True]
 
         # 使用正弦-余弦位置编码嵌入时间步，敏感度范围为 [0, 1]
-        # 使用正弦-余弦位置编码嵌入时间步。
         time_emb = posemb_sincos(timestep, self.action_in_proj.out_features, min_period=4e-3, max_period=4.0)
         # 使用 MLP 混合时间步 + 动作信息
         # 将带噪声的动作投影到嵌入维度。
@@ -349,15 +351,15 @@ class Pi0(_model.BaseModel):
         # 预处理观察值。
         observation = _model.preprocess_observation(preprocess_rng, observation, train=train)
 
-        batch_shape = actions.shape[:-2]
+        batch_shape = actions.shape[:-2] # (b,)
         # 生成与动作相同形状的随机噪声。
         noise = jax.random.normal(noise_rng, actions.shape)
         # 从 Beta 分布中采样一个时间步 `t`。
-        time = jax.random.beta(time_rng, 1.5, 1, batch_shape) * 0.999 + 0.001
+        time = jax.random.beta(time_rng, 1.5, 1, batch_shape) * 0.999 + 0.001 # 
         time_expanded = time[..., None, None]
         # 计算带噪声的动作 (x_t) 和扩散的目标噪声 (u_t)。
         x_t = time_expanded * noise + (1 - time_expanded) * actions
-        u_t = noise - actions
+        u_t = noise - actions   # 
 
         # 一次性对前缀 + 后缀进行一次大的前向传播
         # 嵌入前缀和后缀 token。

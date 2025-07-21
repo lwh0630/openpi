@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: train.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/train.py",
+            "console": "integratedTerminal",
+            // 脚本参数
+            "args": [
+                "pi0_libero_finetune_7_15",
+                "--exp-name=pi0_libero_finetune_7_15",
+                "--overwrite"
+            ],
+            // 环境变量
+            "env": {
+                "XLA_PYTHON_CLIENT_MEM_FRACTION": "0.9",
+            }
+        }
+    ]
+}

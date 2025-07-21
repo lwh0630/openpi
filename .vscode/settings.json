@@ -7,5 +7,7 @@
         "src"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "python.defaultInterpreterPath": "./.venv/bin/python3",
+    "python.terminal.activateEnvironment": true
 }
