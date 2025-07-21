@@ -298,7 +298,6 @@ class Pi0(_model.BaseModel):
         tokens = []
         # 添加一个单独的状态 token
         # 将当前状态投影到嵌入维度。
-        print(obs.state)
         state_token = self.state_proj(obs.state)[:, None, :]
         tokens.append(state_token)
         # 状态 token 的掩码（始终存在）。
@@ -323,7 +322,6 @@ class Pi0(_model.BaseModel):
         # 动作-时间 token 的掩码（始终存在）。
         input_mask.append(jnp.ones(action_time_tokens.shape[:2], dtype=jnp.bool_))
         # 图像/语言/状态输入不关注动作 token。
-        # 第一个动作 token 是自回归的 (True)，随后的则不是 (False)。
         ar_mask += [True] + ([False] * (self.action_horizon - 1))
         # 连接所有后缀 token 及其掩码。
         tokens = jnp.concatenate(tokens, axis=1)
