@@ -20,25 +20,25 @@ logger = logging.getLogger("openpi")
 def make_attn_mask(input_mask, mask_ar):
     """改编自 big_vision。
 
-    token 可以关注到有效的输入 token，这些 token 的累计 `mask_ar` 小于或等于它们自己的累计 `mask_ar`。
-    这样，`mask_ar` bool[?B, N] 可以用于设置几种类型的注意力，例如：
+    token 可以关注到有效的输入 token,这些 token 的累计 `mask_ar` 小于或等于它们自己的累计 `mask_ar`。
+    这样,`mask_ar` bool[?B, N] 可以用于设置几种类型的注意力,例如：
 
       [[1 1 1 1 1 1]]: 纯粹的因果注意力。
 
-      [[0 0 0 1 1 1]]: prefix-lm 注意力。前 3 个 token 可以在它们之间互相关注，后 3 个 token 具有因果注意力。
-          第一个条目也可以是 1，而不会改变行为。
+      [[0 0 0 1 1 1]]: prefix-lm 注意力。前 3 个 token 可以在它们之间互相关注,后 3 个 token 具有因果注意力。
+          第一个条目也可以是 1,而不会改变行为。
 
       [[1 0 1 0 1 0 0 1 0 0]]: 4 个块之间的因果注意力。一个块的 token 可以关注所有先前的块以及同一块中的所有 token。
 
     Args:
-      input_mask: bool[B, N] 如果是输入的一部分，则为 True，否则为 False（填充）。
-      mask_ar: bool[?B, N] 如果先前的 token 不能依赖它，则为 True，否则为 False（表示与先前 token 共享相同的注意力掩码）。
+      input_mask: bool[B, N] 如果是输入的一部分,则为 True,否则为 False（填充）。
+      mask_ar: bool[?B, N] 如果先前的 token 不能依赖它,则为 True,否则为 False（表示与先前 token 共享相同的注意力掩码）。
     """
     # 确保 mask_ar 具有与 input_mask 相同的批次和序列维度。
     mask_ar = jnp.broadcast_to(mask_ar, input_mask.shape)
-    # 沿序列维度计算累积和。这会为每个 token 创建一个值，表示其“注意力组”。
+    # 沿序列维度计算累积和。这会为每个 token 创建一个值,表示其“注意力组”。
     cumsum = jnp.cumsum(mask_ar, axis=1)
-    # attn_mask 决定因果注意力：位置 j 的 token 只能关注位置 i 的 token，如果 cumsum[i] <= cumsum[j]。
+    # attn_mask 决定因果注意力：位置 j 的 token 只能关注位置 i 的 token,如果 cumsum[i] <= cumsum[j]。
     # 这实现了上述各种注意力模式。
     attn_mask = cumsum[:, None, :] <= cumsum[:, :, None]
     # valid_mask 确保注意力只发生在实际的输入 token 之间（而不是填充）。
@@ -54,18 +54,18 @@ def posemb_sincos(
     """为标量位置计算正弦-余弦位置嵌入向量。
 
     Args:
-        pos: 用于计算嵌入的标量位置，形状为 [batch_size]。
+        pos: 用于计算嵌入的标量位置,形状为 [batch_size]。
         embedding_dim: 嵌入向量的所需维度。必须是偶数。
         min_period: 正弦/余弦波的最小周期。
         max_period: 正弦/余弦波的最大周期。
 
     Returns:
-        正弦-余弦位置嵌入，形状为 [batch_size, embedding_dim]。
+        正弦-余弦位置嵌入,形状为 [batch_size, embedding_dim]。
     """
     # 为嵌入维度的一半创建从 0 到 1 的分数数组。
     # 这将用于为正弦/余弦波创建不同的周期。
     fraction = jnp.linspace(0.0, 1.0, embedding_dim // 2)
-    # 计算每个维度的周期，在 min_period 和 max_period 之间呈指数分布。
+    # 计算每个维度的周期,在 min_period 和 max_period 之间呈指数分布。
     period = min_period * (max_period / min_period) ** fraction
     # 计算正弦和余弦函数的输入。这涉及到位置和 2*pi/period 的外积。
     sinusoid_input = jnp.einsum(
@@ -140,7 +140,7 @@ class Pi0Config(_model.BaseModelConfig):
     def get_freeze_filter(self) -> nnx.filterlib.Filter:
         """根据模型配置返回冻结过滤器。
 
-        此过滤器用于指定在训练期间应冻结哪些参数，尤其是在使用 LoRA（低秩适配）时。
+        此过滤器用于指定在训练期间应冻结哪些参数,尤其是在使用 LoRA（低秩适配）时。
         """
         filters = []
         has_lora = False
@@ -149,32 +149,32 @@ class Pi0Config(_model.BaseModelConfig):
         # 用于识别动作专家 LLM 参数的正则表达式
         action_expert_params_filter = nnx_utils.PathRegex(".*llm.*_1.*")
         if "lora" in self.paligemma_variant:
-            # 如果 PaliGemma 使用 LoRA，则将其参数添加到冻结过滤器中
+            # 如果 PaliGemma 使用 LoRA,则将其参数添加到冻结过滤器中
             filters.append(
                 gemma_params_filter,
             )
             if "lora" not in self.action_expert_variant:
-                # 如果只有 PaliGemma 使用 LoRA，则将动作专家参数从冻结中排除
+                # 如果只有 PaliGemma 使用 LoRA,则将动作专家参数从冻结中排除
                 filters.append(
                     nnx.Not(action_expert_params_filter),
                 )
             has_lora = True
         elif "lora" in self.action_expert_variant:
-            # 如果动作专家使用 LoRA，则将其参数添加到冻结过滤器中
+            # 如果动作专家使用 LoRA,则将其参数添加到冻结过滤器中
             filters.append(
                 action_expert_params_filter,
             )
             has_lora = True
 
         if has_lora:
-            # 如果使用了任何 LoRA，则将所有 LoRA 参数从冻结中排除（因为它们通常是需要训练的）
+            # 如果使用了任何 LoRA,则将所有 LoRA 参数从冻结中排除（因为它们通常是需要训练的）
             filters.append(
                 nnx.Not(nnx_utils.PathRegex(".*lora.*")),
             )
         if not filters:
-            # 如果没有添加特定过滤器，则返回 Nothing，表示此过滤器不冻结任何参数。
+            # 如果没有添加特定过滤器,则返回 Nothing,表示此过滤器不冻结任何参数。
             return nnx.Nothing
-        # 使用“All”运算符组合所有过滤器，这意味着所有条件都必须满足才能冻结。
+        # 使用“All”运算符组合所有过滤器,这意味着所有条件都必须满足才能冻结。
         return nnx.All(*filters)
 
 
@@ -192,7 +192,7 @@ class Pi0(_model.BaseModel):
         # 获取 PaliGemma 和动作专家的配置。
         paligemma_config = _gemma.get_config(config.paligemma_variant)
         action_expert_config = _gemma.get_config(config.action_expert_variant)
-        # TODO: 使用 NNX 重写 gemma。目前，使用 bridge。
+        # TODO: 使用 NNX 重写 gemma。目前,使用 bridge。
         # 使用 nnx_bridge.ToNNX 将非 NNX 模块 (_gemma.Module) 桥接到 NNX。
         llm = nnx_bridge.ToNNX(
             _gemma.Module(
@@ -238,7 +238,7 @@ class Pi0(_model.BaseModel):
         Returns:
             包含以下内容的元组： [image1, image2, image3, prompt]
                 - `tokens`: 嵌入的前缀 token。
-                - `input_mask`: 指示有效输入 token 的掩码。(告诉模型哪些 token 是有效的输入，主要是iamge缺失, prompt不够长)
+                - `input_mask`: 指示有效输入 token 的掩码。(告诉模型哪些 token 是有效的输入,主要是iamge缺失, prompt不够长)
                 - `ar_mask`: 用于注意力的自回归掩码。
         """
         input_mask = []
@@ -259,7 +259,7 @@ class Pi0(_model.BaseModel):
                     s=image_tokens.shape[1],
                 )
             )
-            # 图像 token 可以互相关注，因此将 ar_mask 设置为 False。
+            # 图像 token 可以互相关注,因此将 ar_mask 设置为 False。
             ar_mask += [False] * image_tokens.shape[1]
 
         # 添加语言（即 token 化输入）
@@ -268,7 +268,7 @@ class Pi0(_model.BaseModel):
             tokenized_inputs = self.PaliGemma.llm(obs.tokenized_prompt, method="embed")
             tokens.append(tokenized_inputs)
             input_mask.append(obs.tokenized_prompt_mask)
-            # 图像和语言输入之间是完全注意力，因此将 ar_mask 设置为 False。
+            # 图像和语言输入之间是完全注意力,因此将 ar_mask 设置为 False。
             ar_mask += [False] * tokenized_inputs.shape[1]
         # 连接所有前缀 token 及其掩码。
         tokens = jnp.concatenate(tokens, axis=1)
@@ -302,10 +302,10 @@ class Pi0(_model.BaseModel):
         tokens.append(state_token)
         # 状态 token 的掩码（始终存在）。
         input_mask.append(jnp.ones((obs.state.shape[0], 1), dtype=jnp.bool_))
-        # 图像/语言输入不关注状态或动作，因此将 ar_mask 设置为 True。
+        # 图像/语言输入不关注状态或动作,因此将 ar_mask 设置为 True。
         ar_mask += [True]
 
-        # 使用正弦-余弦位置编码嵌入时间步，敏感度范围为 [0, 1]
+        # 使用正弦-余弦位置编码嵌入时间步,敏感度范围为 [0, 1]
         time_emb = posemb_sincos(timestep, self.action_in_proj.out_features, min_period=4e-3, max_period=4.0)
         # 使用 MLP 混合时间步 + 动作信息
         # 将带噪声的动作投影到嵌入维度。
@@ -374,7 +374,7 @@ class Pi0(_model.BaseModel):
         (prefix_out, suffix_out), _ = self.PaliGemma.llm(
             [prefix_tokens, suffix_tokens], mask=attn_mask, positions=positions
         )
-        # 将 LLM 输出的后缀 token 投影到动作维度，以获得预测噪声 (v_t)。
+        # 将 LLM 输出的后缀 token 投影到动作维度,以获得预测噪声 (v_t)。
         v_t = self.action_out_proj(suffix_out[:, -self.action_horizon :])
 
         # 计算预测噪声和目标噪声之间的均方误差损失。
@@ -423,11 +423,11 @@ class Pi0(_model.BaseModel):
             suffix_tokens, suffix_mask, suffix_ar_mask = self.embed_suffix(
                 observation, x_t, jnp.broadcast_to(time, batch_size)
             )
-            # `suffix_attn_mask` 的形状为 (b, suffix_len, suffix_len)，表示后缀 token 如何互相关注。
+            # `suffix_attn_mask` 的形状为 (b, suffix_len, suffix_len),表示后缀 token 如何互相关注。
             suffix_attn_mask = make_attn_mask(suffix_mask, suffix_ar_mask)
-            # `prefix_attn_mask` 的形状为 (b, suffix_len, prefix_len)，表示后缀 token 如何关注前缀 token。
+            # `prefix_attn_mask` 的形状为 (b, suffix_len, prefix_len),表示后缀 token 如何关注前缀 token。
             prefix_attn_mask = einops.repeat(prefix_mask, "b p -> b s p", s=suffix_tokens.shape[1])
-            # `combined_mask` 的形状为 (b, suffix_len, prefix_len + suffix_len)，表示后缀 token（生成查询）
+            # `combined_mask` 的形状为 (b, suffix_len, prefix_len + suffix_len),表示后缀 token（生成查询）
             # 如何关注完整的前缀 + 后缀序列（生成键和值）。
             full_attn_mask = jnp.concatenate([prefix_attn_mask, suffix_attn_mask], axis=-1)
             assert full_attn_mask.shape == (
@@ -435,7 +435,7 @@ class Pi0(_model.BaseModel):
                 suffix_tokens.shape[1],
                 prefix_tokens.shape[1] + suffix_tokens.shape[1],
             )
-            # `positions` 的形状为 (b, suffix_len)，表示后缀 token 的位置。
+            # `positions` 的形状为 (b, suffix_len),表示后缀 token 的位置。
             # 这些位置是相对于完整序列（前缀 + 后缀）的。
             positions = jnp.sum(prefix_mask, axis=-1)[:, None] + jnp.cumsum(suffix_mask, axis=-1) - 1
 
@@ -444,7 +444,7 @@ class Pi0(_model.BaseModel):
                 [None, suffix_tokens], mask=full_attn_mask, positions=positions, kv_cache=kv_cache
             )
             assert prefix_out is None  # 这里只期望后缀输出
-            # 将后缀输出投影到动作维度，以获得预测噪声 (v_t)。
+            # 将后缀输出投影到动作维度,以获得预测噪声 (v_t)。
             v_t = self.action_out_proj(suffix_out[:, -self.action_horizon :])
 
             # 更新 x_t 和时间以进行下一步。

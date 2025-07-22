@@ -42,7 +42,7 @@ def initialize_checkpoint_dir(
         elif resume:  # 如果指定恢复
             resuming = True  # 设置恢复标志为 True
         else:
-            raise FileExistsError(  # 如果目录存在且未指定覆盖或恢复，则抛出错误
+            raise FileExistsError(  # 如果目录存在且未指定覆盖或恢复,则抛出错误
                 f"Checkpoint directory {checkpoint_dir} already exists. Use --overwrite or --resume "
                 "to indicate how to handle it."
             )
@@ -64,8 +64,8 @@ def initialize_checkpoint_dir(
         ),
     )
 
-    # 特殊情况：检查点目录存在且用户请求恢复训练，但训练运行尚未保存第一个检查点。
-    # 这种情况下，我们实际上不希望训练脚本尝试恢复检查点，因为它会失败。
+    # 特殊情况：检查点目录存在且用户请求恢复训练,但训练运行尚未保存第一个检查点。
+    # 这种情况下,我们实际上不希望训练脚本尝试恢复检查点,因为它会失败。
     if resuming and tuple(mngr.all_steps()) in [(), (0,)]:
         logging.info("Checkpoint directory exists, but does not contain any checkpoints. Aborting resume.")
         resuming = False  # 放弃恢复
@@ -120,7 +120,7 @@ def restore_state(
         checkpoint_manager: CheckpointManager 实例。
         state: 当前的训练状态（用于类型提示和结构）。
         data_loader: 数据加载器实例（此处未使用）。
-        step: 要恢复的训练步数，如果为 None 则恢复最新步数。
+        step: 要恢复的训练步数,如果为 None 则恢复最新步数。
 
     Returns:
         恢复后的训练状态。
@@ -149,7 +149,7 @@ def load_norm_stats(assets_dir: epath.Path | str, asset_id: str) -> dict[str, _n
         asset_id: 资产的 ID。
 
     Returns:
-        包含归一化统计信息的字典，如果不存在则为 None。
+        包含归一化统计信息的字典,如果不存在则为 None。
     """
     norm_stats_dir = epath.Path(assets_dir) / asset_id  # 构建归一化统计信息目录路径
     norm_stats = _normalize.load(norm_stats_dir)  # 从指定目录加载归一化统计信息
@@ -165,7 +165,7 @@ class Callback(Protocol):
 
 class CallbackHandler(ocp.AsyncCheckpointHandler):
     """
-    一个用于异步调用任意函数的 CheckpointHandler。仅用于保存，不支持恢复。
+    一个用于异步调用任意函数的 CheckpointHandler。仅用于保存,不支持恢复。
     """
 
     def save(self, directory: epath.Path, args: CallbackSave):
@@ -190,7 +190,7 @@ class CallbackHandler(ocp.AsyncCheckpointHandler):
         Returns:
             一个包含 Future 对象的列表。
         """
-        # 使用 asyncio.to_thread 在单独的线程中运行同步 save 方法，以避免阻塞主事件循环。
+        # 使用 asyncio.to_thread 在单独的线程中运行同步 save 方法,以避免阻塞主事件循环。
         return [future.CommitFutureAwaitingContractedSignals(asyncio.to_thread(self.save, directory, args))]
 
     def restore(self, *args, **kwargs):
@@ -217,8 +217,8 @@ def _split_params(state: training_utils.TrainState) -> tuple[training_utils.Trai
     """
     将训练状态中的参数拆分出来。
 
-    如果存在 EMA 参数，则将其作为主要参数，并将训练状态中的 EMA 参数设为 None。
-    否则，将训练状态中的 params 作为主要参数，并将训练状态中的 params 设为空字典。
+    如果存在 EMA 参数,则将其作为主要参数,并将训练状态中的 EMA 参数设为 None。
+    否则,将训练状态中的 params 作为主要参数,并将训练状态中的 params 设为空字典。
 
     Args:
         state: 训练状态。
@@ -240,7 +240,7 @@ def _merge_params(train_state: training_utils.TrainState, params: dict[str, at.P
     将参数合并回训练状态。
 
     此函数假设 `_split_params` 中的逻辑被反转。
-    如果 `train_state.params` 非空，则表示在拆分时使用了 EMA 参数。
+    如果 `train_state.params` 非空,则表示在拆分时使用了 EMA 参数。
 
     Args:
         train_state: 训练状态。
@@ -250,6 +250,6 @@ def _merge_params(train_state: training_utils.TrainState, params: dict[str, at.P
         合并参数后的训练状态。
     """
     # 反转 `_split_params` 中的逻辑。假设 `params` 的存在意味着在拆分时使用了 EMA 参数。
-    if train_state.params:  # 如果训练状态的 params 非空，说明之前是 ema_params
+    if train_state.params:  # 如果训练状态的 params 非空,说明之前是 ema_params
         return dataclasses.replace(train_state, ema_params=params["params"])  # 将恢复的参数合并为 ema_params
     return dataclasses.replace(train_state, params=params["params"])  # 否则合并为 params

@@ -17,10 +17,10 @@ import openpi.shared.download as download
 class PaligemmaTokenizer:
     """PaliGemma模型的分词器实现。
 
-    使用SentencePiece进行文本分词，支持最大长度限制和自动填充/截断。
+    使用SentencePiece进行文本分词,支持最大长度限制和自动填充/截断。
 
     Args:
-        max_len: 最大分词长度，默认为48
+        max_len: 最大分词长度,默认为48
     """
 
     def __init__(self, max_len: int = 48):
@@ -72,8 +72,8 @@ class FASTTokenizer:
     支持文本、状态和动作序列的联合分词。
 
     Args:
-        max_len: 最大分词长度，默认为256
-        fast_tokenizer_path: FAST分词器路径，默认为"physical-intelligence/fast"
+        max_len: 最大分词长度,默认为256
+        fast_tokenizer_path: FAST分词器路径,默认为"physical-intelligence/fast"
     """
 
     def __init__(self, max_len: int = 256, fast_tokenizer_path: str = "physical-intelligence/fast"):
@@ -186,7 +186,7 @@ class FASTTokenizer:
         )[0]
 
     def _act_tokens_to_paligemma_tokens(self, tokens: np.ndarray | list[int]) -> np.ndarray:
-        """将FAST动作token映射到PaliGemma词表空间，通过从词表末尾偏移实现。"""
+        """将FAST动作token映射到PaliGemma词表空间,通过从词表末尾偏移实现。"""
         if isinstance(tokens, list):
             tokens = np.array(tokens)
         return self._paligemma_tokenizer.vocab_size() - 1 - self._fast_skip_tokens - tokens

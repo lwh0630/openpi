@@ -43,7 +43,7 @@ IMAGE_RESOLUTION = (224, 224)
 
 
 # 下面代码定义了模型输入数据格式
-# 输入是一个嵌套字典，包含观测数据和动作数据
+# 输入是一个嵌套字典,包含观测数据和动作数据
 # 最终会转换为Observation和Actions对象（模型实际使用的数据结构）
 # Data format
 #
@@ -68,7 +68,7 @@ IMAGE_RESOLUTION = (224, 224)
 #     "token_loss_mask": bool[*b, l],  # Optional, loss mask for FAST model
 #
 #      # Actions data.
-#      "actions": float32[*b ah ad] # ah可能表示动作历史长度，ad表示动作维度
+#      "actions": float32[*b ah ad] # ah可能表示动作历史长度,ad表示动作维度
 # }
 # where:
 #   *b = batch dimensions
@@ -145,17 +145,17 @@ def preprocess_observation(
     image_keys: Sequence[str] = IMAGE_KEYS,
     image_resolution: tuple[int, int] = IMAGE_RESOLUTION,
 ) -> Observation:
-    """预处理观测数据，包括图像增强（如果train=True）、调整尺寸（如果需要）和填充默认图像掩码（如果需要）。
+    """预处理观测数据,包括图像增强（如果train=True）、调整尺寸（如果需要）和填充默认图像掩码（如果需要）。
 
     Args:
-        rng: 随机数生成器密钥，用于数据增强。如果没有增强需求则为None
+        rng: 随机数生成器密钥,用于数据增强。如果没有增强需求则为None
         observation: 包含图像、掩码、状态和提示的输入观测数据
         train: 是否应用训练专用的数据增强。默认为False
         image_keys: 要处理的图像键序列。默认为IMAGE_KEYS
-        image_resolution: 图像的目标分辨率（高度，宽度）。默认为IMAGE_RESOLUTION
+        image_resolution: 图像的目标分辨率（高度,宽度）。默认为IMAGE_RESOLUTION
 
     Returns:
-        Observation: 处理后的观测数据，包含增强/调整尺寸后的图像和更新后的掩码
+        Observation: 处理后的观测数据,包含增强/调整尺寸后的图像和更新后的掩码
 
     Raises:
         ValueError: 如果观测数据中缺少必需的图像键
@@ -170,7 +170,7 @@ def preprocess_observation(
     out_images = {}
     for key in image_keys:
         image = observation.images[key]
-        # 如果图像尺寸与目标分辨率不符，则调整尺寸
+        # 如果图像尺寸与目标分辨率不符,则调整尺寸
         if image.shape[1:3] != image_resolution:
             logger.info(f"Resizing image {key} from {image.shape[1:3]} to {image_resolution}")
             image = image_tools.resize_with_pad(image, *image_resolution)
@@ -184,20 +184,20 @@ def preprocess_observation(
             if "wrist" not in key:
                 height, width = image.shape[1:3]
                 transforms += [
-                    # 随机裁剪原图的95%区域，保持内容完整性同时引入变化
+                    # 随机裁剪原图的95%区域,保持内容完整性同时引入变化
                     augmax.RandomCrop(int(width * 0.95), int(height * 0.95)),
                     # 将裁剪后的图像缩放回原尺寸
                     augmax.Resize(width, height),
-                    # 随机旋转-5度到5度之间，增加视角变化
+                    # 随机旋转-5度到5度之间,增加视角变化
                     augmax.Rotate((-5, 5)),
                 ]
             transforms += [
-                # 颜色抖动增强：亮度±30%，对比度±40%，饱和度±50%
+                # 颜色抖动增强：亮度±30%,对比度±40%,饱和度±50%
                 augmax.ColorJitter(brightness=0.3, contrast=0.4, saturation=0.5),
             ]
             # 为批次中的每个图像生成独立的随机种子
             sub_rngs = jax.random.split(rng, image.shape[0])
-            # 使用vmap批量应用增强链，保持JAX的高效并行计算
+            # 使用vmap批量应用增强链,保持JAX的高效并行计算
             image = jax.vmap(augmax.Chain(*transforms))(sub_rngs, image)
 
             # Back to [-1, 1].
@@ -206,7 +206,7 @@ def preprocess_observation(
         out_images[key] = image
 
     # obtain mask
-    # 生成图像掩码字典，确保每个处理后的图像都有对应的掩码
+    # 生成图像掩码字典,确保每个处理后的图像都有对应的掩码
     out_masks = {}
     for key in out_images:
         # 如果原始观测数据中没有该图像的掩码
@@ -215,7 +215,7 @@ def preprocess_observation(
             # 创建默认全1掩码（表示所有像素都有效）
             out_masks[key] = jnp.ones(batch_shape, dtype=jnp.bool)
         else:
-            # 如果原始观测数据中有该图像的掩码，则直接使用
+            # 如果原始观测数据中有该图像的掩码,则直接使用
             out_masks[key] = jnp.asarray(observation.image_masks[key])
 
     return Observation(
@@ -249,7 +249,7 @@ class BaseModelConfig(abc.ABC):
     @property
     @abc.abstractmethod
     def model_type(self) -> ModelType:
-        """抽象属性，定义模型类型。
+        """抽象属性,定义模型类型。
 
         返回:
             模型类型枚举值(ModelType) pi0 or pi0_fast
@@ -257,13 +257,13 @@ class BaseModelConfig(abc.ABC):
 
     @abc.abstractmethod
     def create(self, rng: at.KeyArrayLike) -> "BaseModel":
-        """抽象方法，创建并初始化一个新模型。
+        """抽象方法,创建并初始化一个新模型。
 
         参数:
             rng: 用于参数初始化的随机数生成器密钥
 
         返回:
-            新创建的BaseModel实例，包含初始化参数
+            新创建的BaseModel实例,包含初始化参数
         """
 
     def load(self, params: at.Params, *, remove_extra_params: bool = True) -> "BaseModel":
@@ -277,7 +277,7 @@ class BaseModelConfig(abc.ABC):
             使用给定参数初始化的BaseModel实例
 
         注意:
-            在加载前会验证参数形状，并可选地过滤多余参数
+            在加载前会验证参数形状,并可选地过滤多余参数
         """
         model = nnx.eval_shape(self.create, jax.random.key(0))
         graphdef, state = nnx.split(model)
@@ -289,13 +289,13 @@ class BaseModelConfig(abc.ABC):
 
     @abc.abstractmethod
     def inputs_spec(self, *, batch_size: int = 1) -> tuple[Observation, Actions]:
-        """抽象方法，定义模型的输入规范。
+        """抽象方法,定义模型的输入规范。
 
         参数:
             batch_size: 输入规范的批次大小
 
         返回:
-            包含(observation_spec, action_spec)的元组，每个都是jax.ShapeDtypeStruct
+            包含(observation_spec, action_spec)的元组,每个都是jax.ShapeDtypeStruct
         """
 
     def fake_obs(self, batch_size: int = 1) -> Observation:
@@ -305,7 +305,7 @@ class BaseModelConfig(abc.ABC):
             batch_size: 生成数据的批次大小
 
         返回:
-            填充1的Observation对象，符合指定的形状和数据类型
+            填充1的Observation对象,符合指定的形状和数据类型
         """
         observation_spec, _ = self.inputs_spec(batch_size=batch_size)
         return jax.tree.map(lambda x: jnp.ones(x.shape, x.dtype), observation_spec)
@@ -317,7 +317,7 @@ class BaseModelConfig(abc.ABC):
             batch_size: 生成数据的批次大小
 
         返回:
-            填充1的Actions对象，符合指定的形状和数据类型
+            填充1的Actions对象,符合指定的形状和数据类型
         """
         _, action_spec = self.inputs_spec(batch_size=batch_size)
         return jax.tree.map(lambda x: jnp.ones(x.shape, x.dtype), action_spec)
@@ -351,12 +351,12 @@ class BaseModel(nnx.Module, abc.ABC):
 
         参数:
             rng: JAX随机数生成器密钥
-            observation: 输入观测数据，包含图像、状态和可选的语言提示
+            observation: 输入观测数据,包含图像、状态和可选的语言提示
             actions: 真实动作数据(用于监督学习)
             train: 是否为训练模式(影响如dropout等行为)
 
         返回:
-            计算得到的损失张量，形状[*b ah](*b表示任意批次维度，ah表示动作序列长度)
+            计算得到的损失张量,形状[*b ah](*b表示任意批次维度,ah表示动作序列长度)
     """
 
     @abc.abstractmethod
@@ -366,7 +366,7 @@ class BaseModel(nnx.Module, abc.ABC):
 
         参数:
             rng: JAX随机数生成器密钥
-            observation: 输入观测数据，包含图像、状态和可选的语言提示
+            observation: 输入观测数据,包含图像、状态和可选的语言提示
 
         返回:
             从模型策略中采样的动作序列
@@ -388,9 +388,9 @@ def restore_params(
 
     Args:
         params_path: 检查点目录的本地路径
-        restore_type: 参数恢复的目标类型，可设置为`np.ndarray`将参数作为numpy数组加载
-        dtype: 恢复参数时使用的数据类型。如未提供，则使用检查点中的原始类型
-        sharding: 参数的分片策略。如未提供，参数将在所有设备上复制
+        restore_type: 参数恢复的目标类型,可设置为`np.ndarray`将参数作为numpy数组加载
+        dtype: 恢复参数时使用的数据类型。如未提供,则使用检查点中的原始类型
+        sharding: 参数的分片策略。如未提供,参数将在所有设备上复制
 
     Returns:
         恢复后的参数字典(PyTree结构)

@@ -34,7 +34,7 @@ with Progress(
             progress.update(task2, advance=3)  # 模拟训练进度
 
         if progress.tasks[1].completed >= 250 and not progress.tasks[2].visible:
-            progress.tasks[2].visible = True  # 当训练达到一定进度时，显示验证任务
+            progress.tasks[2].visible = True  # 当训练达到一定进度时,显示验证任务
 
         if not progress.tasks[2].finished:
             progress.update(task3, advance=1)  # 模拟验证进度

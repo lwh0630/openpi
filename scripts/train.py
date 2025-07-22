@@ -31,11 +31,11 @@ import openpi.training.weight_loaders as _weight_loaders
 
 def init_logging():
     """Custom logging format for better readability."""
-    # 定义日志级别到单字符的映射，提高可读性
+    # 定义日志级别到单字符的映射,提高可读性
     level_mapping = {"DEBUG": "D", "INFO": "I", "WARNING": "W", "ERROR": "E", "CRITICAL": "C"}
 
     class CustomFormatter(logging.Formatter):
-        """自定义日志格式器，用于修改日志级别名称"""
+        """自定义日志格式器,用于修改日志级别名称"""
 
         def format(self, record):
             # 将日志级别名称替换为简短的单字符
@@ -65,7 +65,7 @@ def init_wandb(config: _config.TrainConfig, *, resuming: bool, log_code: bool = 
         enabled: 是否启用 wandb。
     """
     if not enabled:
-        wandb.init(mode="disabled")  # 如果未启用，则禁用 wandb
+        wandb.init(mode="disabled")  # 如果未启用,则禁用 wandb
         return
 
     ckpt_dir = config.checkpoint_dir
@@ -73,21 +73,21 @@ def init_wandb(config: _config.TrainConfig, *, resuming: bool, log_code: bool = 
         raise FileNotFoundError(f"Checkpoint directory {ckpt_dir} does not exist.")  # 检查检查点目录是否存在
 
     if resuming:
-        # 如果是恢复模式，从文件中读取 wandb 运行 ID 并恢复
+        # 如果是恢复模式,从文件中读取 wandb 运行 ID 并恢复
         run_id = (ckpt_dir / "wandb_id.txt").read_text().strip()
         wandb.init(id=run_id, resume="must", project=config.project_name)
     else:
-        # 否则，初始化新的 wandb 运行并记录配置
+        # 否则,初始化新的 wandb 运行并记录配置
         wandb.init(
             name=config.exp_name,  # 实验名称
             config=dataclasses.asdict(config),  # 将配置对象转换为字典并记录
             project=config.project_name,  # 项目名称
         )
-        # 将当前运行的 ID 写入文件，以便将来恢复
+        # 将当前运行的 ID 写入文件,以便将来恢复
         (ckpt_dir / "wandb_id.txt").write_text(wandb.run.id)
 
     if log_code:
-        # 如果需要，记录当前目录及其父目录的代码
+        # 如果需要,记录当前目录及其父目录的代码
         wandb.run.log_code(epath.Path(__file__).parent.parent)
 
 
@@ -100,7 +100,7 @@ def _load_weights_and_validate(loader: _weight_loaders.WeightLoader, params_shap
         params_shape: 期望的参数结构（包含形状和 dtype 信息）。
 
     Returns:
-        已加载的参数（仅包含实际加载的值，不包含 ShapeDtypeStruct）。
+        已加载的参数（仅包含实际加载的值,不包含 ShapeDtypeStruct）。
     """
     loaded_params = loader.load(params_shape)  # 使用加载器加载权重
     # 检查加载的参数是否与期望的形状和 dtype 匹配
@@ -127,14 +127,14 @@ def init_train_state(
         resume: 是否恢复训练。
 
     Returns:
-        一个元组，包含初始化的训练状态和训练状态的分片信息。
+        一个元组,包含初始化的训练状态和训练状态的分片信息。
     """
     # 创建优化器
     tx = _optimizer.create_optimizer(config.optimizer, config.lr_schedule, weight_decay_mask=None)
 
     def init(rng: at.KeyArrayLike, partial_params: at.Params | None = None) -> training_utils.TrainState:
         """
-        内部初始化函数，用于创建训练状态。
+        内部初始化函数,用于创建训练状态。
 
         Args:
             rng: 随机数生成器键。
@@ -147,7 +147,7 @@ def init_train_state(
         # 初始化模型（及其参数）
         model = config.model.create(model_rng)
 
-        # 如果提供了部分参数，则将其合并到模型中
+        # 如果提供了部分参数,则将其合并到模型中
         if partial_params is not None:
             graphdef, state = nnx.split(model)  # 分割模型的图定义和状态
             # 这将在 partial_params 不是状态子集时产生错误。
@@ -163,7 +163,7 @@ def init_train_state(
             params=params,  # 模型参数
             model_def=nnx.graphdef(model),  # 模型的图定义
             tx=tx,  # 优化器
-            opt_state=tx.init(params.filter(config.trainable_filter)),  # 优化器状态，只针对可训练参数
+            opt_state=tx.init(params.filter(config.trainable_filter)),  # 优化器状态,只针对可训练参数
             ema_decay=config.ema_decay,  # EMA 衰减率
             ema_params=None if config.ema_decay is None else params,  # EMA 参数（如果启用 EMA）
         )
@@ -173,18 +173,18 @@ def init_train_state(
     state_sharding = sharding.fsdp_sharding(train_state_shape, mesh, log=True)  # 计算 FSDP 分片
 
     if resume:
-        # 如果是恢复模式，只返回形状和分片信息
+        # 如果是恢复模式,只返回形状和分片信息
         return train_state_shape, state_sharding
 
-    # 加载并验证权重，获取部分参数
+    # 加载并验证权重,获取部分参数
     partial_params = _load_weights_and_validate(config.weight_loader, train_state_shape.params.to_pure_dict())
-    # 定义复制分片，用于输入参数
+    # 定义复制分片,用于输入参数
     replicated_sharding = jax.sharding.NamedSharding(mesh, jax.sharding.PartitionSpec())
 
     # 初始化训练状态并混入部分参数
     train_state = jax.jit(
         init,
-        donate_argnums=(1,),  # 释放 partial_params 缓冲区，优化内存
+        donate_argnums=(1,),  # 释放 partial_params 缓冲区,优化内存
         in_shardings=replicated_sharding,  # 输入分片
         out_shardings=state_sharding,  # 输出分片
     )(init_rng, partial_params)
@@ -209,7 +209,7 @@ def train_step(
         batch: 包含观察和动作的批次数据。
 
     Returns:
-        一个元组，包含更新后的训练状态和包含损失、梯度范数等信息的字典。
+        一个元组,包含更新后的训练状态和包含损失、梯度范数等信息的字典。
     """
     # 将模型定义和参数合并回完整的模型对象
     model = nnx.merge(state.model_def, state.params)
@@ -239,7 +239,7 @@ def train_step(
     train_rng = jax.random.fold_in(rng, state.step)
     observation, actions = batch  # 解包批次数据
 
-    # 过滤掉冻结的参数，只计算可训练参数的梯度
+    # 过滤掉冻结的参数,只计算可训练参数的梯度
     diff_state = nnx.DiffState(0, config.trainable_filter)
     # 计算损失和梯度
     loss, grads = nnx.value_and_grad(loss_fn, argnums=diff_state)(model, train_rng, observation, actions)
@@ -256,7 +256,7 @@ def train_step(
 
     # 更新训练状态
     new_state = dataclasses.replace(state, step=state.step + 1, params=new_params, opt_state=new_opt_state)
-    # 如果启用了 EMA，则更新 EMA 参数
+    # 如果启用了 EMA,则更新 EMA 参数
     if state.ema_decay is not None:
         new_state = dataclasses.replace(
             new_state,
@@ -348,7 +348,7 @@ def main(config: _config.TrainConfig):
     )  # 记录训练状态信息
 
     if resuming:
-        # 如果是恢复模式，从检查点恢复训练状态
+        # 如果是恢复模式,从检查点恢复训练状态
         train_state = _checkpoints.restore_state(checkpoint_manager, train_state, data_loader)
 
     # JIT 编译训练步骤函数
@@ -356,7 +356,7 @@ def main(config: _config.TrainConfig):
         functools.partial(train_step, config),  # 函数应用配置
         in_shardings=(replicated_sharding, train_state_sharding, data_sharding),  # 输入分片
         out_shardings=(train_state_sharding, replicated_sharding),  # 输出分片
-        donate_argnums=(1,),  # 捐赠参数，优化内存
+        donate_argnums=(1,),  # 捐赠参数,优化内存
     )
 
     start_step = int(train_state.step)  # 获取起始训练步数
@@ -394,5 +394,5 @@ def main(config: _config.TrainConfig):
 
 
 if __name__ == "__main__":
-    # 当脚本作为主程序运行时，调用 main 函数并传入通过命令行解析的配置
+    # 当脚本作为主程序运行时,调用 main 函数并传入通过命令行解析的配置
     main(_config.cli())

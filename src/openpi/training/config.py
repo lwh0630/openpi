@@ -34,13 +34,13 @@ Filter: TypeAlias = nnx.filterlib.Filter
 
 @dataclasses.dataclass(frozen=True)
 class AssetsConfig:
-    """确定用于设置数据管道的资产（例如，范数统计）的位置。
+    """确定用于设置数据管道的资产（例如,范数统计）的位置。
 
     这些资产将复制到检查点下的 `assets/asset_id` 目录中。
 
-    这可用于从不同的检查点（例如，基础模型检查点）或某个其他
-    集中位置加载资产。例如，要在微调期间从基础模型检查点加载
-    Trossen 机器人的范数统计信息，请使用：
+    这可用于从不同的检查点（例如,基础模型检查点）或某个其他
+    集中位置加载资产。例如,要在微调期间从基础模型检查点加载
+    Trossen 机器人的范数统计信息,请使用：
 
     ```
     AssetsConfig(
@@ -50,40 +50,40 @@ class AssetsConfig:
     ```
     """
 
-    # 资产目录。如果未提供，将使用配置的 assets_dirs。这对于从
-    # 不同的检查点（例如，基础模型检查点）或其他集中位置加载资产很有用。
+    # 资产目录。如果未提供,将使用配置的 assets_dirs。这对于从
+    # 不同的检查点（例如,基础模型检查点）或其他集中位置加载资产很有用。
     assets_dir: str | None = None
 
-    # 资产 ID。如果未提供，将使用 repo ID。这允许用户引用描述
+    # 资产 ID。如果未提供,将使用 repo ID。这允许用户引用描述
     # 不同机器人平台的资产。
     asset_id: str | None = None
 
 
 @dataclasses.dataclass(frozen=True)
 class DataConfig:
-    # LeRobot 仓库 ID。如果为 None，将创建假数据。
+    # LeRobot 仓库 ID。如果为 None,将创建假数据。
     repo_id: str | None = None
     # 资产目录中包含数据资产的目录。
     asset_id: str | None = None
-    # 包含预计算的归一化统计信息。如果为 None，则不执行归一化。
+    # 包含预计算的归一化统计信息。如果为 None,则不执行归一化。
     norm_stats: dict[str, _transforms.NormStats] | None = None
 
     # 用于将数据集特定格式的输入调整为数据转换所需的通用格式。
     repack_transforms: _transforms.Group = dataclasses.field(default_factory=_transforms.Group)
-    # 数据转换，通常包括机器人特定的转换。将在数据归一化之前应用。
+    # 数据转换,通常包括机器人特定的转换。将在数据归一化之前应用。
     # 请参阅 `model.Observation` 和 `model.Actions` 以了解归一化数据。
     data_transforms: _transforms.Group = dataclasses.field(default_factory=_transforms.Group)
     # 模型特定转换。将在数据归一化之后应用。
     model_transforms: _transforms.Group = dataclasses.field(default_factory=_transforms.Group)
-    # 如果为 True，将使用分位数归一化。否则，将使用正常的 Z-score 归一化。
+    # 如果为 True,将使用分位数归一化。否则,将使用正常的 Z-score 归一化。
     use_quantile_norm: bool = False
 
     # 数据加载器用于生成动作序列的键名。序列的长度由模型配置中的
-    # `action_horizon` 字段定义。如果您的 LeRobot 数据集使用不同的键来表示动作，
+    # `action_horizon` 字段定义。如果您的 LeRobot 数据集使用不同的键来表示动作,
     # 应调整此项。
     action_sequence_keys: Sequence[str] = ("actions",)
 
-    # 如果为 True，将使用 LeRobot 数据集任务来定义提示。
+    # 如果为 True,将使用 LeRobot 数据集任务来定义提示。
     prompt_from_task: bool = False
 
     # 仅用于 RLDS 数据加载器（即目前仅用于 DROID）。
@@ -101,7 +101,7 @@ class GroupFactory(Protocol):
 class ModelTransformFactory(GroupFactory):
     """为标准 pi0 模型创建模型转换。"""
 
-    # 如果提供，将确定模型将使用的默认提示。
+    # 如果提供,将确定模型将使用的默认提示。
     default_prompt: str | None = None
 
     def __call__(self, model_config: _model.BaseModelConfig) -> _transforms.Group:
@@ -260,7 +260,7 @@ class LeRobotLiberoDataConfig(DataConfigFactory):
 
     Methods:
         create(assets_dirs: pathlib.Path, model_config: _model.BaseModelConfig) -> DataConfig:
-            创建并返回数据配置对象，包含三种主要变换：重新打包变换、数据变换和模型变换。
+            创建并返回数据配置对象,包含三种主要变换：重新打包变换、数据变换和模型变换。
 
             Args:
                 assets_dirs: 资源目录路径
@@ -273,7 +273,7 @@ class LeRobotLiberoDataConfig(DataConfigFactory):
     @override
     def create(self, assets_dirs: pathlib.Path, model_config: _model.BaseModelConfig) -> DataConfig:
         """
-        创建数据配置的核心方法，包含以下三个主要部分：
+        创建数据配置的核心方法,包含以下三个主要部分：
         1. repack_transform: 仅对数据集输入进行键名重映射
         2. data_transforms: 对模型输入输出数据进行变换
         3. model_transforms: 模型特有的变换(如token化)
@@ -302,7 +302,7 @@ class LeRobotLiberoDataConfig(DataConfigFactory):
         )
 
         # 将绝对动作转换为相对动作(delta动作)的变换
-        # 注意:对于Libero数据集此变换理论上不需要，因为原始数据已经是delta动作
+        # 注意:对于Libero数据集此变换理论上不需要,因为原始数据已经是delta动作
         delta_action_mask = _transforms.make_bool_mask(6, -1)
         data_transforms = data_transforms.push(
             inputs=[_transforms.DeltaActions(delta_action_mask)],
@@ -375,21 +375,21 @@ class RLDSDroidDataConfig(DataConfigFactory):
         )
 
 
-@dataclasses.dataclass(frozen=True)  # 使用数据类，并设置为不可变（frozen=True），意味着实例创建后不能修改属性。
+@dataclasses.dataclass(frozen=True)  # 使用数据类,并设置为不可变（frozen=True）,意味着实例创建后不能修改属性。
 class TrainConfig:
     # 配置的名称。必须是唯一的。将用于引用此配置。
     name: tyro.conf.Suppress[
         str
-    ]  # tyro.conf.Suppress 表示此参数通常不会在命令行中直接指定，可能通过其他方式设置或推断。
+    ]  # tyro.conf.Suppress 表示此参数通常不会在命令行中直接指定,可能通过其他方式设置或推断。
 
     # 项目名称。
     project_name: str = "openpi"
 
     # 实验名称。将用于命名元数据和检查点目录。
-    exp_name: str = tyro.MISSING  # tyro.MISSING 表示此参数必须被明确提供，没有默认值。
+    exp_name: str = tyro.MISSING  # tyro.MISSING 表示此参数必须被明确提供,没有默认值。
 
     # 定义模型配置。一些属性（action_dim、action_horizon 和 max_token_len）是所有模型共享的
-    # —— 参见 BaseModelConfig。具体的模型实现（例如 Pi0Config）继承自 BaseModelConfig，并可能定义额外的属性。
+    # —— 参见 BaseModelConfig。具体的模型实现（例如 Pi0Config）继承自 BaseModelConfig,并可能定义额外的属性。
     model: _model.BaseModelConfig = dataclasses.field(default_factory=pi0.Pi0Config)
 
     # 权重加载器可以在模型初始化后选择性地从磁盘加载（可能是部分）权重。
@@ -399,7 +399,7 @@ class TrainConfig:
     lr_schedule: _optimizer.LRScheduleConfig = dataclasses.field(default_factory=_optimizer.CosineDecaySchedule)
     # 优化器配置
     optimizer: _optimizer.OptimizerConfig = dataclasses.field(default_factory=_optimizer.AdamW)
-    # EMA（指数移动平均）衰减率。如果为 None，则不使用 EMA。
+    # EMA（指数移动平均）衰减率。如果为 None,则不使用 EMA。
     ema_decay: float | None = 0.99
 
     # 指定哪些权重应该被冻结（不参与训练）。
@@ -408,7 +408,7 @@ class TrainConfig:
     # 确定要训练的数据集。
     data: DataConfigFactory = dataclasses.field(default_factory=FakeDataConfig)
 
-    # 配置资产（例如，规范化统计信息）的基础目录。
+    # 配置资产（例如,规范化统计信息）的基础目录。
     assets_base_dir: str = "./assets"
     # 检查点的基础目录。
     checkpoint_base_dir: str = "./checkpoints"
@@ -417,7 +417,7 @@ class TrainConfig:
     seed: int = 42
     # 全局批次大小。
     batch_size: int = 32
-    # 用于数据加载器的工作进程数量。增加此数字将加速数据加载，但会增加内存和 CPU 使用。
+    # 用于数据加载器的工作进程数量。增加此数字将加速数据加载,但会增加内存和 CPU 使用。
     num_workers: int = 2
     # 要运行的训练步数（批次）。
     num_train_steps: int = 30_000
@@ -426,29 +426,29 @@ class TrainConfig:
     log_interval: int = 100
     # 每隔多少步（in steps）保存检查点。
     save_interval: int = 1000
-    # 如果设置，任何满足“步数 % keep_period == 0”的现有检查点将不会被删除。
+    # 如果设置,任何满足“步数 % keep_period == 0”的现有检查点将不会被删除。
     keep_period: int | None = 5000
 
-    # 如果为 True，将覆盖已存在的检查点目录。
+    # 如果为 True,将覆盖已存在的检查点目录。
     overwrite: bool = False
-    # 如果为 True，将从最后一个检查点恢复训练。
+    # 如果为 True,将从最后一个检查点恢复训练。
     resume: bool = False
 
-    # 如果为 True，将启用 Weights & Biases (wandb) 日志记录。
+    # 如果为 True,将启用 Weights & Biases (wandb) 日志记录。
     wandb_enabled: bool = True
 
     # 用于向策略服务器传递元数据。
     policy_metadata: dict[str, Any] | None = None
 
-    # 如果该值大于 1，FSDP（全分片数据并行）将被启用，并根据指定的设备数量进行分片；
-    # 整体设备内存将减少，但训练速度可能会变慢。
-    # 例如：如果总设备数是 4，FSDP 设备数是 2；那么模型将分片到 2 个设备上，并在两组设备之间运行数据并行。
+    # 如果该值大于 1,FSDP（全分片数据并行）将被启用,并根据指定的设备数量进行分片；
+    # 整体设备内存将减少,但训练速度可能会变慢。
+    # 例如：如果总设备数是 4,FSDP 设备数是 2；那么模型将分片到 2 个设备上,并在两组设备之间运行数据并行。
     fsdp_devices: int = 1
 
     @property
     def assets_dirs(self) -> pathlib.Path:
         """获取此配置的资产目录。"""
-        # 将 assets_base_dir 和 config.name 组合起来，形成一个绝对路径。
+        # 将 assets_base_dir 和 config.name 组合起来,形成一个绝对路径。
         return (pathlib.Path(self.assets_base_dir) / self.name).resolve()
 
     @property
@@ -457,7 +457,7 @@ class TrainConfig:
         # 检查 exp_name 是否已设置
         if not self.exp_name:
             raise ValueError("--exp_name must be set")
-        # 将 checkpoint_base_dir、config.name 和 exp_name 组合起来，形成一个绝对路径。
+        # 将 checkpoint_base_dir、config.name 和 exp_name 组合起来,形成一个绝对路径。
         return (pathlib.Path(self.checkpoint_base_dir) / self.name / self.exp_name).resolve()
 
     @property
@@ -467,7 +467,7 @@ class TrainConfig:
         return nnx.All(nnx.Param, nnx.Not(self.freeze_filter))
 
     def __post_init__(self) -> None:
-        """数据类初始化后的回调方法，用于执行额外的验证。"""
+        """数据类初始化后的回调方法,用于执行额外的验证。"""
         # 确保不能同时设置恢复训练和覆盖检查点。
         if self.resume and self.overwrite:
             raise ValueError("Cannot resume and overwrite at the same time.")
@@ -568,14 +568,14 @@ _CONFIGS = [
     ),
     # 用于Libero任务微调的配置实例
     # 参数说明:
-    # - name: 训练配置名称，标识当前配置
-    # - model: 模型配置，使用pi0.Pi0Config指定:
+    # - name: 训练配置名称,标识当前配置
+    # - model: 模型配置,使用pi0.Pi0Config指定:
     #     * paligemma_variant: 使用LoRA微调的2B参数Gemma模型
     #     * action_expert_variant: 使用LoRA微调的300M参数Gemma动作专家模型
-    # - data: 数据配置，使用LeRobotLiberoDataConfig:
+    # - data: 数据配置,使用LeRobotLiberoDataConfig:
     #     * repo_id: 数据集仓库ID
-    #     * base_config: 基础数据配置，启用从任务生成提示的功能
-    # - weight_loader: 权重加载器，从指定路径加载预训练权重
+    #     * base_config: 基础数据配置,启用从任务生成提示的功能
+    # - weight_loader: 权重加载器,从指定路径加载预训练权重
     # - num_train_steps: 总训练步数(30,000步)
     # - freeze_filter: 参数冻结过滤器:
     #     * 使用与模型配置匹配的默认LoRA微调冻结参数
@@ -585,7 +585,7 @@ _CONFIGS = [
         # Here is an example of loading a pi0 model for LoRA fine-tuning.
         model=pi0.Pi0Config(paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"),
         data=LeRobotLiberoDataConfig(
-            repo_id="/mnt/sda/lwh/openpi/.cache/wenhai/libero",  # 可以是本地路径，也可以是Hugging Face Hub 的 repo_id
+            repo_id="/mnt/sda/lwh/openpi/.cache/wenhai/libero",  # 可以是本地路径,也可以是Hugging Face Hub 的 repo_id
             base_config=DataConfig(prompt_from_task=True),
         ),
         weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
