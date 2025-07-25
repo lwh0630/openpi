@@ -9,6 +9,8 @@ import numpy as np
 import tqdm
 import tyro
 
+from rich import print
+
 import openpi.models.model as _model
 import openpi.shared.normalize as normalize
 import openpi.training.config as _config
@@ -144,6 +146,12 @@ def main(config_name: str, max_frames: int | None = None):
     config = _config.get_config(config_name)
     # 根据配置创建数据配置
     data_config = config.data.create(config.assets_dirs, config.model)
+    output_path = config.assets_dirs / data_config.repo_id
+    print(f"Computing stats for {config_name}", end="\n\n")
+    print(f"Data config: {data_config}", end="\n\n")
+    print(f"config.assets_dirs: {config.assets_dirs}", end="\n\n")
+    print(f"data_config.repo_id: {data_config.repo_id}", end="\n\n")
+    print(f"Output path: {output_path}", end="\n\n")
 
     # 根据数据源类型选择创建相应的数据加载器
     if data_config.rlds_data_dir is not None:

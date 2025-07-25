@@ -54,7 +54,7 @@ class Config:
     lora_configs: dict[str, lora.LoRAConfig] = dataclasses.field(default_factory=dict)  # LoRA配置字典
 
 
-Variant = Literal["dummy", "gemma_300m", "gemma_2b", "gemma_2b_lora"]
+Variant = Literal["dummy", "gemma_300m", "gemma_300m_lora", "gemma_2b", "gemma_2b_lora"]
 
 
 def get_config(variant: Variant) -> Config:
@@ -312,6 +312,18 @@ class Block(nn.Module):
 
     @nn.compact
     def __call__(self, xs, kv_cache, positions, attn_mask, decode, deterministic=True):  # noqa: FBT002
+        """Transformer块。
+        Args:
+            xs (_type_): 输入张量列表
+            kv_cache (_type_): 键值缓存
+            positions (_type_): 位置张量
+            attn_mask (_type_): 注意力掩码
+            decode (_type_): 是否为解码模式
+            deterministic (bool, optional): if false the inputs are scaled by ``1 / (1 - rate)`` and masked, whereas if true, no mask is applied and the inputs are returned as is.
+        Returns:
+            xs: 输出张量列表
+            kv_cache: 键值缓存
+        """
         # 激活值分片约束
         xs = sharding.activation_sharding_constraint(xs)
         # Dropout层

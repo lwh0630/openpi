@@ -371,6 +371,7 @@ class Pi0(_model.BaseModel):
         # 计算 token 的位置。
         positions = jnp.cumsum(input_mask, axis=1) - 1
         # 使用前缀和后缀对 LLM 进行前向传播。
+        # prefix_out 是 Gemma 的输出, suffix_out 是 action_export 的输出
         (prefix_out, suffix_out), _ = self.PaliGemma.llm(
             [prefix_tokens, suffix_tokens], mask=attn_mask, positions=positions
         )

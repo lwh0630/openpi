@@ -9,5 +9,7 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.defaultInterpreterPath": "./.venv/bin/python3",
-    "python.terminal.activateEnvironment": true
+    "python.terminal.activateEnvironment": true,
+
+    "editor.cursorSmoothCaretAnimation": "on"
 }

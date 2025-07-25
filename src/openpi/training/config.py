@@ -581,11 +581,11 @@ _CONFIGS = [
     #     * 使用与模型配置匹配的默认LoRA微调冻结参数
     # - ema_decay: 关闭EMA(指数移动平均)功能
     TrainConfig(
-        name="pi0_libero_finetune_7_15",
+        name="pi0_libero_finetune_debug",
         # Here is an example of loading a pi0 model for LoRA fine-tuning.
         model=pi0.Pi0Config(paligemma_variant="gemma_2b_lora", action_expert_variant="gemma_300m_lora"),
         data=LeRobotLiberoDataConfig(
-            repo_id="/mnt/sda/lwh/openpi/.cache/wenhai/libero",  # 可以是本地路径,也可以是Hugging Face Hub 的 repo_id
+            repo_id="/mnt/sda/lwh/openpi/.cache/wenhai/libero",
             base_config=DataConfig(prompt_from_task=True),
         ),
         weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
@@ -601,6 +601,30 @@ _CONFIGS = [
         ema_decay=None,
         wandb_enabled=False,
     ),
+    
+    TrainConfig(
+        name="pi0_fast_libero_low_mem_finetune_debug",
+        # Here is an example of loading a pi0-FAST model for LoRA finetuning.
+        # For setting action_dim, action_horizon, and max_token_len, see the comments above.
+        model=pi0_fast.Pi0FASTConfig(
+            action_dim=7, action_horizon=10, max_token_len=180, paligemma_variant="gemma_2b_lora"
+        ),
+        data=LeRobotLiberoDataConfig(
+            repo_id="/mnt/sda/lwh/openpi/.cache/wenhai/pi0_fast/libero",
+            base_config=DataConfig(prompt_from_task=True),
+        ),
+        weight_loader=weight_loaders.CheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_fast_base/params"),
+        num_train_steps=30_000,
+        # Again, make sure to match the model config above when extracting the freeze filter
+        # that specifies which parameters should be frozen during LoRA finetuning.
+        freeze_filter=pi0_fast.Pi0FASTConfig(
+            action_dim=7, action_horizon=10, max_token_len=180, paligemma_variant="gemma_2b_lora"
+        ).get_freeze_filter(),
+        # Turn off EMA for LoRA finetuning.
+        ema_decay=None,
+        wandb_enabled=False,
+    ),
+        
     TrainConfig(
         name="pi0_libero_low_mem_finetune",
         # Here is an example of loading a pi0 model for LoRA fine-tuning.
