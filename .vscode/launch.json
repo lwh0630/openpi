@@ -20,7 +20,7 @@
             }
         },
         {
-            "name": "Python: train pi0_fast",
+            "name": "Python: train pi0_fast_libero_low_mem_finetune_debug",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/scripts/train.py",
@@ -29,6 +29,24 @@
             "args": [
                 "pi0_fast_libero_low_mem_finetune_debug",
                 "--exp-name=pi0_fast_libero_low_mem_finetune_debug",
+                "--overwrite"
+            ],
+            // 环境变量
+            "env": {
+                // "CUDA_VISIBLE_DEVICES":"2,3",
+                "XLA_PYTHON_CLIENT_MEM_FRACTION": "0.9",
+            }
+        },
+        {
+            "name": "Python: train pi0_fast_libero_debug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/train.py",
+            "console": "integratedTerminal",
+            // 脚本参数
+            "args": [
+                "pi0_fast_libero_debug",
+                "--exp-name=pi0_fast_libero_debug",
                 "--overwrite"
             ],
             // 环境变量
