@@ -278,7 +278,7 @@ class Pi0FAST(_model.BaseModel):
         prefix_token_embeddings, prefix_mask, prefix_ar_mask = self.embed_inputs(observation) # 嵌入前缀输入
         prefix_attn_mask = make_attn_mask(prefix_mask, prefix_ar_mask) # 创建前缀注意力掩码
 
-        # 将所有输入令牌序列从左对齐转换为右对齐
+        # 将所有输入令牌序列从左对齐转换为右对齐，高效KV缓存
         prefix_token_embeddings, prefix_mask, prefix_attn_mask = left_to_right_align(
             prefix_token_embeddings, prefix_mask, prefix_attn_mask
         )
